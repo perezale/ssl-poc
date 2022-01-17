@@ -17,6 +17,9 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
+import fetch from 'node-fetch';
+import FormData from 'form-data';
+
 export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -124,9 +127,45 @@ app.on('window-all-closed', () => {
   }
 });
 
+function test() {
+  const fileContents = `file=24e35278ad5d4d3babe7379dc34d5bce,439,pasted.wfp
+  5=369450fc
+  6=bf7226a9
+  8=b04dd861
+  9=9727e3cd
+  11=2152ba16`
+  const form = new FormData();
+  const wfpContent = fileContents;
+  console.log(wfpContent);
+  form.append('filename', Buffer.from(wfpContent), 'sample.wfp');
+  fetch("https://scanoss.com/api/scan/direct", {
+      method: 'POST',
+      body: form,
+      headers: { 'User-Agent': app.getVersion() }
+  }).then( (response:any) => {
+
+    if (!response.ok) {
+      response.text().then( (text:any)  => {
+        console.log("FETCH ERROR")
+        console.log(text);
+      });
+    }
+    else {
+    response.text().then((text:any)=> {
+      const dataAsObj = JSON.parse(text);
+      console.log("FETCH OK");
+      console.log(dataAsObj);
+    })
+    
+  }
+})
+
+}
+
 app
   .whenReady()
   .then(() => {
+    test();
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
